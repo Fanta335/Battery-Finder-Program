@@ -164,7 +164,7 @@ const config = {
   batteryContainer: document.getElementById("batteryContainer"),
 };
 
-//カメラの情報を取得する関数
+//カメラの情報を処理する関数たち
 const cameraInfo = {
   //カメラのブランド:String[]を取得する
   getAllBrand: function (cameraArr) {
@@ -228,16 +228,25 @@ const cameraInfo = {
   changeCameraInfo: function () {
     let totalPowerConsumptionWh = cameraInfo.getTotalPowerConsumptionWh();
     let batteryList = batteryInfo.getBatteryList(totalPowerConsumptionWh);
-    let batteryDivs = batteryInfo.getBatteryLife(
-      totalPowerConsumptionWh,
-      batteryList
-    );
-    batteryInfo.setBattery(batteryDivs);
+    if (batteryList.length === 0) {
+      config.batteryContainer.textContent = null;
+      let text = document.createElement("h4");
+      text.classList.add("pt-5");
+      text.textContent = "There is no batteries you need...";
+      config.batteryContainer.append(text);
+    } else {
+      let batteryDivs = batteryInfo.getBatteryLife(
+        totalPowerConsumptionWh,
+        batteryList
+      );
+      batteryInfo.setBattery(batteryDivs);
+    }
   },
 };
 
-//バッテリーの情報を取得する関数
+//バッテリーの情報を処理する関数たち
 const batteryInfo = {
+  //{バッテリー名: バッテリーの電力容量}のオブジェクトを作成
   getPowerCapacityWh: function () {
     let powerCapacityWh = {};
     for (let i = 0; i < battery.length; i++) {
@@ -248,6 +257,7 @@ const batteryInfo = {
     return powerCapacityWh;
   },
 
+  //{バッテリー名: バッテリーの最大放電電力}のオブジェクトを作成
   getMaxDischargePower: function () {
     let maxDischargePower = {};
     for (let i = 0; i < battery.length; i++) {
@@ -258,13 +268,15 @@ const batteryInfo = {
     return maxDischargePower;
   },
 
+  //バッテリー名、持続時間の一覧を表示する
   setBattery: function (batteryDivs) {
     config.batteryContainer.textContent = null;
     for (let i = 0; i < batteryDivs.length; i++) {
-      batteryContainer.append(batteryDivs[i]);
+      config.batteryContainer.append(batteryDivs[i]);
     }
   },
 
+  //カメラ、アクセサリーの消費電力を受け取り、それを上回る電力容量をもつバッテリーをリスト化する
   getBatteryList: function (totalPowerConsumptionWh) {
     let batteryList = [];
 
@@ -277,6 +289,8 @@ const batteryInfo = {
     return batteryList;
   },
 
+  //カメラ、アクセサリーの消費電力と、バッテリーのリストを受け取り、
+  //バッテリーの名前と持続時間の計算結果を表示するdiv要素を返す
   getBatteryLife: function (totalPowerConsumptionWh, batteryList) {
     let batteryListWithLife = [];
 
@@ -320,5 +334,5 @@ window.onload = function () {
   cameraInfo.setModel(config.brandMenu.value);
   cameraInfo.changeCameraInfo();
   config.modelMenu.onchange = cameraInfo.changeCameraInfo;
-  config.apcForm.onchange = cameraInfo.changeCameraInfo;
+  config.apcForm.oninput = cameraInfo.changeCameraInfo;
 };
